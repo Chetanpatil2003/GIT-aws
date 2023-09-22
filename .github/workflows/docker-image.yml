@@ -1,0 +1,43 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14' # Adjust the Node.js version as needed
+
+      - name: Build Docker images
+        run: |
+          docker build -t chetanpatil2003/posts-service ./posts
+          docker build -t chetanpatil2003/threads-service ./threads
+          docker build -t chetanpatil2003/users-service ./users
+
+  push:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+
+      - name: Push Docker images
+        run: |
+          docker push chetanpatil2003/posts-service
+          docker push chetanpatil2003/threads-service
+          docker push chetanpatil2003/users-service
